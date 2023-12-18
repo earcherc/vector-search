@@ -1,2 +1,1 @@
-# Vector Search Project# vector-search
-# vector-search
+# Vector Search Project
