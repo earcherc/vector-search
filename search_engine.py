@@ -7,7 +7,6 @@ from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 import joblib
 
-# Initialize NLP model
 nlp = spacy.load("en_core_web_sm", disable=["ner", "parser"])
 nlp.add_pipe("sentencizer")
 

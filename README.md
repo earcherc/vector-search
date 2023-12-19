@@ -11,11 +11,11 @@ To set up the project environment, follow these steps:
 2. Navigate to the project directory.
 3. Create a Python virtual environment in the project directory:
    ```bash
-   python -m venv env
+   python -m venv venv
    ```
 4. Activate the virtual environment (mac/linux):
    ```bash
-   source env/bin/activate
+   source venv/bin/activate
    ```
 1. Install the required packages using the `requirements.txt` file:
    ```bash
@@ -31,11 +31,11 @@ To set up the project environment, follow these steps:
 To use the text search engine, follow these steps:
 
 1. Place your `.txt` data files in the `data` directory.
-2. Run the script using the following command, replacing `your_search_query` with your desired search term:
+2. Run the script using the following command:
    ```bash
-   python search_engine.py "your_search_query"
+   python search_engine.py
    ```
-3. The script will process the text files (if not already processed) and perform the search, returning the top matching sentences along with their filenames and line numbers.
+3. The script will process the text files (if not already processed) and then allow you to process search requests, returning the top matching sentences along with their filenames and line numbers.
 
 ## Contributing
 
