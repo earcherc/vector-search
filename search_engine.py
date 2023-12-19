@@ -5,7 +5,6 @@ import spacy
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
-import argparse
 import joblib
 
 # Initialize NLP model
@@ -20,24 +19,37 @@ def load_data(data_dir):
     Load data from text files and return a DataFrame.
     """
     data = []
+
     for filename in os.listdir(data_dir):
         if filename.endswith(".txt"):
             print(f"Processing {filename}...")
             file_path = data_dir / filename
+
             with open(file_path, "r", encoding="utf-8") as file:
-                line_number = 1
-                for line in file:
-                    doc = nlp(line.strip())
-                    for sent in doc.sents:
-                        sentence = sent.text.strip()
-                        data.append(
-                            {
-                                "filename": filename,
-                                "sentence": sentence,
-                                "line_number": line_number,
-                            }
-                        )
-                    line_number += 1
+                content = file.read()
+
+            # Create a mapping of character positions to line numbers
+            line_starts = {0: 1}
+            for i, char in enumerate(content):
+                if char == "\n":
+                    line_starts[i + 1] = line_starts[i] + 1
+                else:
+                    line_starts[i + 1] = line_starts[i]
+
+            # Process the entire content with spaCy
+            doc = nlp(content)
+            for sent in doc.sents:
+                start_char = sent.start_char
+                line_number = line_starts[start_char]
+                sentence = sent.text.strip()
+                data.append(
+                    {
+                        "filename": filename,
+                        "sentence": sentence,
+                        "line_number": line_number,
+                    }
+                )
+
     return pd.DataFrame(data)
 
 
@@ -63,14 +75,11 @@ def search(query, embeddings, df):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Text Search Engine")
-    parser.add_argument("query", help="Search query")
-    args = parser.parse_args()
-
+    print("Starting script...")
     data_dir = Path.cwd() / "data"
     df_dir = Path.cwd() / "saved_dfs"
     df_path = df_dir / "dataframe.csv"
-    embeddings_path = Path.cwd() / "embeddings" / "sentence_embeddings_v1.joblib"
+    embeddings_path = Path.cwd() / "embeddings" / "sentence_embeddings.joblib"
 
     df_dir.mkdir(exist_ok=True)
     Path.cwd().joinpath("embeddings").mkdir(exist_ok=True)
@@ -91,15 +100,20 @@ def main():
         embeddings = generate_embeddings(df)
         joblib.dump(embeddings, embeddings_path)
 
-    # Perform search
-    query = args.query
-    top_docs, top_scores = search(query, embeddings, df)
+    while True:
+        query = input("Enter search query (or type 'exit' to quit): ")
+        if query.lower() == "exit":
+            break
 
-    # Print search results
-    for i, (index, row) in enumerate(top_docs.iterrows()):
-        print(f"Result {i+1}:")
-        print(f"  Sentence: {row['sentence']}")
-        print(f"  File: {row['filename']}, Line: {row['line_number']}")
+        top_docs, top_scores = search(query, embeddings, df)
+
+        if top_docs.empty:
+            print("No results found.")
+        else:
+            for i, (index, row) in enumerate(top_docs.iterrows()):
+                print(f"Result {i+1}:")
+                print(f"  Sentence: {row['sentence']}")
+                print(f"  File: {row['filename']}, Line: {row['line_number']}")
 
 
 if __name__ == "__main__":
